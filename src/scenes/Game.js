@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import * as Colors from '../const/color'
-import {boxColorToTileColor} from '../utilities/colorUtilies'
+import {boxColorToTileColor, targetColorToBoxColor} from '../utilities/colorUtilies'
 import * as Directions from '../const/direction'
 import {offsetForDirections} from '../utilities/tileUtilies'
 
@@ -33,14 +33,14 @@ export default class Game extends Phaser.Scene
     create()
     {
         const level = [
-            [100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
-            [100,   0,   0,   0,   0,   0,   0,   0,   0, 100],
-            [100,   6,   7,   8,   9,   10,   0,   0,   0, 100],
-            [100,   25, 38,  51,   64,  77,  52,   0,   0, 100],
-            [100,   0,   0,   0,   0,   0,   0,   0,   0, 100],
-            [100,   0,   0,   0,   0,   0,   0,   0,   0, 100],
-            [100,   0,   0,   0,   0,   0,   0,   0,   0, 100],
-            [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+            [  0,   0, 100, 100, 100,   0,   0,   0,   0,   0],
+            [  0,   0, 100,  64, 100,   0,   0,   0,   0,   0],
+            [  0,   0, 100,   0, 100, 100, 100, 100,   0,   0],
+            [100, 100, 100,   9,   0,   9,  64, 100,   0,   0],
+            [100,  64,   0,   9,  52, 100, 100, 100,   0,   0],
+            [100, 100, 100, 100,   9, 100,   0,   0,   0,   0],
+            [  0,   0,   0, 100,  64, 100,   0,   0,   0,   0],
+            [  0,   0,   0, 100, 100, 100,   0,   0,   0,   0]
         ]
 
         const map = this.make.tilemap({ 
@@ -134,6 +134,9 @@ export default class Game extends Phaser.Scene
                 key: 'tiles',
                 frame: color
             }).map(box => box.setOrigin(0))
+
+            const targetColor = boxColorToTileColor(color)
+            this.TargetsCoveredByColor[targetColor] = 0
         })
 
     }
@@ -187,7 +190,7 @@ export default class Game extends Phaser.Scene
                             this.incrementCountForColor(targetColor, 1)
                         } 
 
-                        console.dir(this.TargetsCoveredByColor)
+                        console.dir(this.allTargetsCovered())
                     }
                 })
             )
@@ -217,6 +220,27 @@ export default class Game extends Phaser.Scene
 
         return tile.index === tileIndex
 
+    }
+
+    allTargetsCovered() {
+        const targetCovers = Object.keys(this.TargetsCoveredByColor)
+
+        for (let i = 0; i < targetCovers.length; ++i) {
+            const targetColor = targetCovers[i]
+            const boxColor = targetColorToBoxColor(targetColor)
+            if(!(boxColor in this.boxesByColor)) {
+                continue
+            }
+            const numBoxes = this.boxesByColor[boxColor].length
+
+            const numCovered = this.TargetsCoveredByColor[targetColor]
+
+            if(numCovered < numBoxes) {
+                return false
+            }
+        }
+
+        return true
     }
 
     hasWallAt(x, y) {

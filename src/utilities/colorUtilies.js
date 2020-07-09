@@ -19,6 +19,26 @@ const boxColorToTileColor = (boxColor) => {
   }
 }
 
+const targetColorToBoxColor = (targetColor) => {
+  switch(parseInt(targetColor)) {
+    case Colors.targetBlue:
+      return Colors.boxBlue
+    
+    case Colors.targetGreen:
+      return Colors.boxGreen
+
+    case Colors.targetGrey:
+      return Colors.boxGrey
+
+    case Colors.targetOrange:
+      return Colors.boxOrange
+    
+    case Colors.targetRed:
+      return Colors.boxRed
+  }
+}
+
 export {
-  boxColorToTileColor
+  boxColorToTileColor,
+  targetColorToBoxColor
 }
