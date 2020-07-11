@@ -21,11 +21,7 @@ export default class LevelFinished extends Phaser.Scene {
     {
       fontFamily: 'Poppins'
     }).setOrigin(0.5)
-    // const buttonHtml = `
-    //       <button class="button is-primary is-large">
-    //         <span>${buttonText}</span>
-    //       </button>
-    // `
+
     const buttonHtml = createButton(text)
     //this.add.dom(x, y, element, style, text)
       const button = this.add.dom(width * 0.5, height * 0.7)
