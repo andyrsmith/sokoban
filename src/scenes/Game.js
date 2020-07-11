@@ -3,21 +3,27 @@ import * as Colors from '../const/color'
 import {boxColorToTileColor, targetColorToBoxColor} from '../utilities/colorUtilies'
 import * as Directions from '../const/direction'
 import {offsetForDirections} from '../utilities/tileUtilies'
+import {baseTweenForDirection} from '../utilities/tweeUtilities'
 
 export default class Game extends Phaser.Scene
 {
     cursors
     player
-    //blueBoxes
     layer
+    stepsTaken
+    movesCountLabel
     boxesByColor = {}
     
     TargetsCoveredByColor = {}
 
 	constructor()
 	{
-		super('hello-world')
-	}
+		super('game')
+    }
+    
+    init() {
+        this.stepsTaken = 0;
+    }
 
 	preload()
     {
@@ -28,6 +34,7 @@ export default class Game extends Phaser.Scene
         })
 
         this.cursors = this.input.keyboard.createCursorKeys()
+
     }
 
     create()
@@ -64,12 +71,9 @@ export default class Game extends Phaser.Scene
 
         this.extractBoxes(this.layer)
 
-        // this.blueBoxes = this.layer.createFromTiles(8, 0, {
-        //     key: 'tiles',
-        //     frame: 8
-        // })
-
-        // this.blueBoxes.map(box => box.setOrigin(0))
+        this.movesCountLabel = this.add.text(500, 50, `Moves: ${this.stepsTaken}`, {
+            fontFamily: 'Righteous'
+        })
 
     }
 
@@ -105,23 +109,23 @@ export default class Game extends Phaser.Scene
 
         if(justLeft) {
 
-            this.tweenMove({x: '-=64',duration: 500 },  Directions.left, () => {
+            this.tweenMove(Directions.left, () => {
                 this.player.anims.play('left', true)
             })
 
         } else if (justRight) {
            
-            this.tweenMove({x: '+=64',duration: 500 }, Directions.right, () => {
+            this.tweenMove(Directions.right, () => {
                 this.player.anims.play('right', true)
             })
 
         } else if (justUp) {
-            this.tweenMove({y: '-=64',duration: 500 }, Directions.up, () => {
+            this.tweenMove(Directions.up, () => {
                 this.player.anims.play('up', true)
             })
 
         } else if (justDown) {
-            this.tweenMove({y: '+=64',duration: 500 }, Directions.down, () => {
+            this.tweenMove(Directions.down, () => {
                 this.player.anims.play('down', true)
             })
         }
@@ -141,8 +145,16 @@ export default class Game extends Phaser.Scene
 
     }
 
-    tweenMove(baseTween, direction, onStart) {
+    updateMovesCount() {
+        if(!this.movesCountLabel) {
+            return
+        }
+        this.movesCountLabel.text = `Moves: ${this.stepsTaken}`
 
+    }
+
+    tweenMove(direction, onStart) {
+        const baseTween = baseTweenForDirection(direction)
         if(!this.player || this.tweens.isTweening(this.player)) {
             return 
         }
@@ -178,6 +190,8 @@ export default class Game extends Phaser.Scene
             if(coveredTarget) {
                 this.incrementCountForColor(targetColor, -1)
             }
+
+
             this.tweens.add(Object.assign(
                 baseTween,
                 {
@@ -190,7 +204,7 @@ export default class Game extends Phaser.Scene
                             this.incrementCountForColor(targetColor, 1)
                         } 
 
-                        console.dir(this.allTargetsCovered())
+
                     }
                 })
             )
@@ -200,11 +214,22 @@ export default class Game extends Phaser.Scene
             baseTween,
             {
                 targets: this.player, 
-                onComplete: this.stopPlayerAnimation,
+                onComplete: this.handlePlayerStop,
                 onCompleteScope: this,
                 onStart: onStart
             }
         ))
+    }
+
+    handlePlayerStop() {
+        this.stepsTaken++
+        this.stopPlayerAnimation()
+        this.updateMovesCount()
+        if(this.allTargetsCovered()) {
+            this.scene.start('level-finished', {
+                moves: this.stepsTaken
+            })
+        }
     }
 
     coveredTargetAt(x, y, tileIndex) {
@@ -269,6 +294,7 @@ export default class Game extends Phaser.Scene
         if(!this.player) {
             return
         }
+
         const currentAnimKey = this.player.anims.currentAnim?.key
         if(!currentAnimKey.startsWith('idle')) {
             this.player.anims.play(`idle-${currentAnimKey}`)

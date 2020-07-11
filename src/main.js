@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
-
 import Game from './scenes/Game'
+import LevelFinished from './scenes/levelFinished'
+import Preloader from './scenes/Preloader'
 
 const config = {
 	type: Phaser.AUTO,
@@ -12,7 +13,11 @@ const config = {
 			gravity: { y: 200 }
 		}
 	},
-	scene: [Game]
+	parent: 'mphaser',
+	dom: {
+		createContainer: true
+	},
+	scene: [Preloader, Game, LevelFinished]
 }
 
 export default new Phaser.Game(config)
