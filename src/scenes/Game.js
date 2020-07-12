@@ -4,6 +4,8 @@ import {boxColorToTileColor, targetColorToBoxColor} from '../utilities/colorUtil
 import * as Directions from '../const/direction'
 import {offsetForDirections} from '../utilities/tileUtilies'
 import {baseTweenForDirection} from '../utilities/tweeUtilities'
+import { sharedInstance as levels} from '../levels/levelService'
+import { allTargetsCovered } from '../targets/allTargetsCovered'
 
 export default class Game extends Phaser.Scene
 {
@@ -13,7 +15,7 @@ export default class Game extends Phaser.Scene
     stepsTaken
     movesCountLabel
     boxesByColor = {}
-    
+    currentLevel = 1
     TargetsCoveredByColor = {}
 
 	constructor()
@@ -37,19 +39,17 @@ export default class Game extends Phaser.Scene
 
     }
 
-    create()
+    create(data)
     {
-        const level = [
-            [  0,   0, 100, 100, 100,   0,   0,   0,   0,   0],
-            [  0,   0, 100,  64, 100,   0,   0,   0,   0,   0],
-            [  0,   0, 100,   0, 100, 100, 100, 100,   0,   0],
-            [100, 100, 100,   9,   0,   9,  64, 100,   0,   0],
-            [100,  64,   0,   9,  52, 100, 100, 100,   0,   0],
-            [100, 100, 100, 100,   9, 100,   0,   0,   0,   0],
-            [  0,   0,   0, 100,  64, 100,   0,   0,   0,   0],
-            [  0,   0,   0, 100, 100, 100,   0,   0,   0,   0]
-        ]
-
+        if(!data || !data.levelMap ) {
+            data = {
+                levelMap: 1
+            }
+        }
+        this.currentLevel = data.levelMap
+        //data in create needs to be d
+        //const data = Object.assign({ levelMap: 1}, d)
+        const level = levels.getLevel(data.levelMap)
         const map = this.make.tilemap({ 
             data: level, 
             tileHeight: 64, 
@@ -169,6 +169,7 @@ export default class Game extends Phaser.Scene
 
         const isWall = this.hasWallAt(ox, oy)
         if(isWall) {
+            //play error
             return
         }
 
@@ -191,7 +192,7 @@ export default class Game extends Phaser.Scene
                 this.incrementCountForColor(targetColor, -1)
             }
 
-
+            //move sound play here
             this.tweens.add(Object.assign(
                 baseTween,
                 {
@@ -225,9 +226,10 @@ export default class Game extends Phaser.Scene
         this.stepsTaken++
         this.stopPlayerAnimation()
         this.updateMovesCount()
-        if(this.allTargetsCovered()) {
+        if(allTargetsCovered(this.TargetsCoveredByColor, this.boxesByColor)) {
             this.scene.start('level-finished', {
-                moves: this.stepsTaken
+                moves: this.stepsTaken,
+                currentLevel: this.currentLevel
             })
         }
     }
@@ -245,27 +247,6 @@ export default class Game extends Phaser.Scene
 
         return tile.index === tileIndex
 
-    }
-
-    allTargetsCovered() {
-        const targetCovers = Object.keys(this.TargetsCoveredByColor)
-
-        for (let i = 0; i < targetCovers.length; ++i) {
-            const targetColor = targetCovers[i]
-            const boxColor = targetColorToBoxColor(targetColor)
-            if(!(boxColor in this.boxesByColor)) {
-                continue
-            }
-            const numBoxes = this.boxesByColor[boxColor].length
-
-            const numCovered = this.TargetsCoveredByColor[targetColor]
-
-            if(numCovered < numBoxes) {
-                return false
-            }
-        }
-
-        return true
     }
 
     hasWallAt(x, y) {
@@ -286,7 +267,12 @@ export default class Game extends Phaser.Scene
         if(!(color in this.TargetsCoveredByColor)) {
             this.TargetsCoveredByColor[color] = change
         } else {
+
             this.TargetsCoveredByColor[color] += change
+        }
+
+        if(change > 0) {
+            this.sound.play('confirmation')
         }
     }
 

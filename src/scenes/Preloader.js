@@ -14,9 +14,17 @@ export default class Preloader extends Phaser.Scene {
 
     this.load.addFile(fonts)
 
+    this.load.audio('game-music', 'assets/music/8BitCave.wav')
+    this.load.audio('confirmation', 'assets/sfx/confirmation_003.ogg')
+
   }
 
   create() {
-    this.scene.start('game')
+    this.sound.play('game-music', {
+      loop: true,
+      volume: 0.25
+    })
+    this.scene.start('game', { levelMap: 1})
+    //this.scene.start('level-finished')
   }
 }
