@@ -15,7 +15,11 @@ export default class Preloader extends Phaser.Scene {
     this.load.addFile(fonts)
 
     this.load.audio('game-music', 'assets/music/8BitCave.wav')
+    //can all browser play ogg files?
     this.load.audio('confirmation', 'assets/sfx/confirmation_003.ogg')
+    //load sound for move maxi 008 error 006
+    //sound for moving the box
+    //sound ui click click2; when user click button
 
   }
 

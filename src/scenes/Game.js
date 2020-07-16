@@ -18,19 +18,24 @@ export default class Game extends Phaser.Scene
     currentLevel = 1
     TargetsCoveredByColor = {}
 
-	constructor()
+	constructor(d)
 	{
 		super('game')
     }
     
-    init() {
+    init(d) {
+        const data = Object.assign({ levelMap: 1}, d)
         this.stepsTaken = 0;
+        this.currentLevel = data.levelMap
     }
 
 	preload()
     {
 
-        this.load.spritesheet('tiles', 'assets/sokoban_tilesheet.png', {
+        //needed to use embedded
+        this.load.tilemapTiledJSON('tilemap', `assets/levels/level${this.currentLevel}.json`)
+
+        this.load.spritesheet('tiles', 'assets/levels/sokoban_tilesheet.png', {
             frameWidth: 64,
             startFrame: 0
         })
@@ -39,27 +44,32 @@ export default class Game extends Phaser.Scene
 
     }
 
-    create(data)
+    create()
     {
-        if(!data || !data.levelMap ) {
-            data = {
-                levelMap: 1
-            }
-        }
-        this.currentLevel = data.levelMap
+        // if(!data || !data.levelMap ) {
+        //     data = {
+        //         levelMap: 1
+        //     }
+        // }
+        //this.currentLevel = data.levelMap
         //data in create needs to be d
         //const data = Object.assign({ levelMap: 1}, d)
-        const level = levels.getLevel(data.levelMap)
-        const map = this.make.tilemap({ 
-            data: level, 
-            tileHeight: 64, 
-            tileWidth: 64
+        //const level = levels.getLevel(data.levelMap)
+        // const map = this.make.tilemap({ 
+        //     data: level, 
+        //     tileHeight: 64, 
+        //     tileWidth: 64
+        // })
+
+        const map = this.make.tilemap({
+            key: 'tilemap'
         })
 
-        const tile = map.addTilesetImage('tiles')
-
-        this.layer = map.createStaticLayer(0, tile, 0, 0)
-        this.player = this.layer.createFromTiles(52, 0, {
+        //addTilesetImage (name in tile, name in app)  if both are same then just one arg
+        const tile = map.addTilesetImage('sokoban', 'tiles')
+        //name of layer in Tile1
+        this.layer = map.createStaticLayer('Tile Layer 1', tile, 0, 0)
+        this.player = this.layer.createFromTiles(53, 0, {
             key: 'tiles',
             frame: 52
         }).pop()
@@ -73,6 +83,10 @@ export default class Game extends Phaser.Scene
 
         this.movesCountLabel = this.add.text(500, 50, `Moves: ${this.stepsTaken}`, {
             fontFamily: 'Righteous'
+        })
+
+        this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.cache.tilemap.remove('tilemap')
         })
 
     }
@@ -134,7 +148,7 @@ export default class Game extends Phaser.Scene
     extractBoxes(layer) {
         const boxColors = [Colors.boxBlue, Colors,Colors.boxGreen, Colors.boxGrey, Colors.boxOrange, Colors.boxRed]
         boxColors.forEach(color => {
-            this.boxesByColor[color] = layer.createFromTiles(color, 0, {
+            this.boxesByColor[color] = layer.createFromTiles(color + 1, 0, {
                 key: 'tiles',
                 frame: color
             }).map(box => box.setOrigin(0))
@@ -245,7 +259,7 @@ export default class Game extends Phaser.Scene
             return false
         }
 
-        return tile.index === tileIndex
+        return tile.index === tileIndex + 1
 
     }
 
@@ -259,7 +273,7 @@ export default class Game extends Phaser.Scene
             return false
         }
 
-        return tile.index === 100;
+        return tile.index === 101;
 
     }
 
