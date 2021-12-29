@@ -7,6 +7,7 @@ export default class Preloader extends Phaser.Scene {
   }
 
   preload() {
+
     const fonts = new WebFontFile(this.load, [
       'Poppins',
       'Righteous'
