@@ -1,9 +1,6 @@
-![phaser3-parceljs-template](https://user-images.githubusercontent.com/2236153/71606463-37a0da80-2b2e-11ea-9b5f-5d26ccc84f91.png)
+# Sokoban Phaser 3 Tutorial
 
-# Phaser3 + Parcel Template
-> For people who want to spend time making games instead of configuring build tools.
-
-![License](https://img.shields.io/badge/license-MIT-green)
+I wanted to learn how to build Javascript games using Phaser3 so I Built a Sokoban game by following along with the Ouracrade video series.  Ourcade has a phaser 3 template to make getting started with Phaser 3 easy. This readme was included in the template, so I left most of it how it was. Mostly just changed the intro.
 
 ## Prerequisites
 
